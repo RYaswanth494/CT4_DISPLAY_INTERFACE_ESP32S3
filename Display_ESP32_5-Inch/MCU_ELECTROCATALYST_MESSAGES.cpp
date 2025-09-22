@@ -1,9 +1,3 @@
-/*
- * MCU_ELECTROCATALYST.c
- *
- *  Created on: Sep 9, 2025
- *      Author: MadaYaswanth
- */
 #pragma once
 
 #include <HardwareSerial.h>
@@ -15,6 +9,11 @@
 #include<stdint.h>
 #include <string.h>
 #include<stdbool.h>
+#include<cstdio>
+#include<lv_label.h>
+#include"ui_HOME.h"
+#include"ui.h"
+char pres_str1[100];
 // Decoding functions for each CAN message
 // Helper: extract Motorola-format (big-endian) up to 64 bits
 // Sign-extend a value of 'len' bits
@@ -69,16 +68,16 @@ void decode_MCU_Stat_Two(const uint8_t *data, MCU_Stat_Two_t *out) {
 	uint64_t raw2 = extract_little_endian_u64(data, 0, 16);
 	out->MCU_Motor_RPM = (double)raw2  -16384.0;
 
-  tft.setCursor(20,120 );
-  tft.setTextSize(2);
-  tft.setTextColor(TFT_WHITE);
-  tft.println("DISTANCE TRAVELLED :"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(260, 120);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(260, 120);
-tft.setTextSize(2);
-tft.printf("%0.2lf", out->MCU_Odometer_Val);
+    sprintf(pres_str1, "%.2lf",out->MCU_Odometer_Val);
+    lv_label_set_text(ui_OdoMeterVal, pres_str1); 
+		if(out->MCU_Motor_RPM<10){
+    // sprintf(pres_str1, "%.2f",out->MCU_Motor_RPM);
+    lv_label_set_text(ui_RPMVal,"0"); 
+		}else{
+    sprintf(pres_str1, "%ld",(uint64_t)out->MCU_Motor_RPM);
+    lv_label_set_text(ui_RPMVal, pres_str1); 
+		}
+		
 }
 void decode_MCU_Fault_Code(const uint8_t *data, MCU_Fault_Code_t *out) {
 	if (!out) return;
@@ -228,78 +227,23 @@ void decode_MCU_Stat_One(const uint8_t *data, MCU_Stat_One_t *out) {
 	out->MCU_Stat_One_sig4 = (int)extract_little_endian_u64(data, 48, 8);
 	out->MCU_Stat_One_sig5 = (int)extract_little_endian_u64(data, 40, 8);
 	out->MCU_Stat_One_sig6 = (int)extract_little_endian_u64(data, 32, 8);
-  tft.setCursor(20,150 );
-  tft.setTextSize(2);
-  tft.setTextColor(TFT_WHITE);
-  tft.println("MOTOR_TEMP:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(200, 150);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(200, 150);
-tft.setTextSize(2);
-tft.printf("%ld", out->MCU_Stat_One_sig0);
 
-  tft.setCursor(20,180 );
-  tft.setTextSize(2);
-  tft.setTextColor(TFT_WHITE);
-  tft.println("BRAKE_PERCENTAGE :"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(250, 180);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(250, 180);
-tft.setTextSize(2);
-tft.printf("%ld ", out->MCU_Stat_One_sig5);
+    sprintf(pres_str1, "%ld",out->MCU_Stat_One_sig0);
+    lv_label_set_text(ui_MotorTempValue, pres_str1); 
 
-  tft.setCursor(20,210 );
-  tft.setTextSize(2);
-  tft.setTextColor(TFT_WHITE);
-  tft.println("THROTTLE_PER :"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(200, 210);
-tft.print("    ");   // clear old value with spaces
-tft.setTextSize(2);
-tft.setCursor(200, 210);
-tft.printf("%ld ", out->MCU_Stat_One_sig6);
-
-  tft.setCursor(20,240 );
-  tft.setTextSize(2);
-  tft.setTextColor(TFT_WHITE);
-  tft.println("DRIVE_MODE :"); 
+    sprintf(pres_str1, "%ld",out->MCU_Stat_One_sig1);
+    lv_label_set_text(ui_MCUTempVal, pres_str1);
 
 	if( out->MCU_Stat_One_sig3==0){
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(200, 240);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(200, 240);
-tft.setTextSize(2);
-tft.printf("N");
+    lv_label_set_text(ui_DriveMode, "N");
 	}else if(out->MCU_Stat_One_sig3==3){
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(200, 240);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(200, 240);
-tft.setTextSize(2);
-tft.printf("F");
+    lv_label_set_text(ui_DriveMode, "F");
 	}else if(out->MCU_Stat_One_sig3==1 ||out->MCU_Stat_One_sig3==2 ){
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(200, 240);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(200, 240);
-tft.setTextSize(2);
-tft.printf("R");
+    lv_label_set_text(ui_DriveMode, "R");
 	}
 
-
-  tft.setCursor(20,270 );
-  tft.setTextSize(2);
-  tft.setTextColor(TFT_WHITE);
-  tft.println("SPEED_IN_Kmph :"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(200, 270);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(200, 270);
-tft.setTextSize(2);
-tft.printf("%ld", out->MCU_Stat_One_sig4);
+    sprintf(pres_str1, "%ld",out->MCU_Stat_One_sig4);
+    lv_label_set_text(ui_SpeedVal, pres_str1); 
 
 
 	// uart_print_str("\n MCU_Motor_Temp: ");
@@ -334,65 +278,26 @@ out->power_sig1 = (double)extract_motorola_u64(data, 7, 10)*0.1;
 out->power_sig2 = (double)extract_motorola_u64(data, 16, 10)*0.1-65;
 out->power_sig3 = (double)extract_motorola_u64(data, 44, 15)-16384;
 out->power_sig4 = (double)extract_motorola_u64(data, 13, 13)*0.1-409.6;
-  tft.setCursor(20,20 );
-  tft.setTextSize(2);
-  tft.setTextColor(0xffffff);
-  tft.println("MOTOR_RPM:"); 
-Serial1.printf("%lf",out->power_sig3);
+//   tft.setCursor(20,20 );
+//   tft.setTextSize(2);
+//   tft.setTextColor(0xffffff);
+//   tft.println("MOTOR_RPM:"); 
+// Serial1.printf("%lf",out->power_sig3);
 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(150, 20);
-tft.print("           ");   // clear old value with spaces
-tft.setCursor(150, 20);
-tft.setTextSize(2);
-	if(out->power_sig3<0){
-		out->power_sig3=-out->power_sig3;
-	}
-if((out->power_sig3 <=30)){
-tft.printf("0");
-}else{
-	tft.printf("%0.2lf",out->power_sig3);
-}
+// tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
+// tft.setCursor(150, 20);
+// tft.print("           ");   // clear old value with spaces
+// tft.setCursor(150, 20);
+// tft.setTextSize(2);
+// 	if(out->power_sig3<0){
+// 		out->power_sig3=-out->power_sig3;
+// 	}
+// if((out->power_sig3 <=30)){
+// tft.printf("0");
+// }else{
+// 	tft.printf("%0.2lf",out->power_sig3);
+// }
 
-  tft.setCursor(20,50 );
-  tft.setTextSize(2);
-  tft.setTextColor(TFT_WHITE);
-  tft.println("VOLTAGE:"); 
- Serial1.printf("%lf",out->power_sig1);
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(130, 50);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(130, 50);
-tft.setTextSize(2);
-tft.printf("%0.2lf", out->power_sig1);
-
- tft.setCursor(20,80 );
-  tft.setTextSize(2);
-  tft.setTextColor(TFT_WHITE);
-  tft.println("CURRENT :"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(130, 80);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(130, 80);
-tft.setTextSize(2);
-if(out->power_sig4<0){
-	out->power_sig4=-out->power_sig4;
-}
-tft.printf("%0.2lf", out->power_sig4);
-
-
-// uart_print_str("\n torque_requested: ");
-// uart_send_double(out->power_sig0,3);
-// uart_print_str("\n DC V0L: ");
-// uart_send_double(out->power_sig1,3);
-// uart_print_str("\n EST_TORQ :");
-// uart_send_double(out->power_sig2,3);
-// uart_print_str("\n RPM: ");
-// uart_printf("%ld ",out->power_sig3);
-// uart_print_str("\n DC_CUR: ");
-// uart_send_double(out->power_sig4,3);
-// uart_print_str("\n");
-// uart_print_str("\n============================================\n");
 
 }
 void mcu_can_messages(){

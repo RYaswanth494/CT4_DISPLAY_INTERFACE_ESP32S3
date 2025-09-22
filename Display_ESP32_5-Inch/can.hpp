@@ -1,8 +1,4 @@
-/**
-  * @brief CAN Frame structure for sending and receiving data
-  */
-  #pragma once
-
+#pragma once
 typedef struct {
     uint32_t id;        /**< CAN identifier (11-bit for standard, 29-bit for extended) */
     uint8_t  ide;       /**< 0 for standard identifier, 1 for extended identifier */

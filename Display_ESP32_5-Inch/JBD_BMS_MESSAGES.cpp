@@ -1,70 +1,33 @@
 #pragma once
 #include<stdint.h>
 #include"cnfg_gfx.h"
+#include<cstdio>
  extern LGFX tft;
 #include"JBD_BMS.hpp"
 #include"JBD_BMS_MESAGES.hpp"
+#include<cstdio>
+#include<lv_label.h>
+#include"ui_HOME.h"
+#include"ui.h"
+   char pres_str[32];
+
 void decode_CAN_0x100(const uint8_t *data, CAN_BMS_0x100_t *msg) {
     msg->Total_Voltage = ((data[0] << 8) | data[1]) * 0.01f;   // 10 mV → V
     msg->Charge_and_Discharge_Current =(float)((int16_t)((data[2] << 8) | data[3])) * 0.01f;  // 10 mA → A
     msg->Remaining_Capacity= (float)(((int16_t)(data[4] << 8) | data[5])) * 0.01f; // 10 mAh → Ah
     msg->CRC_Check   = (data[6] << 8) | data[7];
-tft.setCursor(20+400,20 );
-tft.setTextSize(2);
-tft.setTextColor(0xffffff);
-tft.println("VOLTAGE:"); 
-tft.setTextColor(0xffffff,  0xF800);  // foreground, background
-tft.setCursor(150+400, 20);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(150+400, 20);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->Total_Voltage);
-
-tft.setCursor(20+400,50 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("DIS_CH_CUR:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(190+400, 50);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(190+400, 50);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->Charge_and_Discharge_Current);
-
-
-tft.setCursor(20+400,80 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("FC :"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(130+400, 80);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(130+400, 80);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->Remaining_Capacity);
-    // uart_printf("Total_Voltage=%.2f Vol Charge_and_Discharge_Current=%.2f A Remaining_Capacity=%.2f Ah\n\r",msg->Total_Voltage,msg->Charge_and_Discharge_Current,msg->Remaining_Capacity);
+    sprintf(pres_str, "%d",(int)msg->Charge_and_Discharge_Current);
+    lv_label_set_text(ui_ChargeDischargeCurrrentVal, pres_str);
+    sprintf(pres_str, "%d",(int)msg->Total_Voltage);
+    lv_label_set_text(ui_VOLVAL, pres_str);
 }
 void decode_CAN_0x101(const uint8_t *data, CAN_BMS_0x101_t *msg) {
     msg->Full_Capacity = ((data[0] << 8) | data[1]) * 0.01f;  // 10 mAh → Ah
     msg->No_Cycles        = (data[2] << 8) | data[3];
     msg->RSOC          = (uint8_t)(((data[4] << 8) | data[5]) & 0xFF); // RSOC in %
     msg->CRC_Check        = (data[6] << 8) | data[7];
-    tft.setCursor(20+400,110 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("RSOC  :"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(100+400, 110);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(100+400, 110);
-
-tft.setTextSize(2);
-tft.printf("%d",msg->RSOC);
-    // uart_printf("Full_Capacity=%.2f Ah RSOC=%d %\n\r",msg->Full_Capacity,(int)msg->RSOC);
-
+    sprintf(pres_str, "%d",msg->RSOC);
+    lv_label_set_text(ui_SOCVal, pres_str);
 }
 void decode_CAN_Voltage(const uint8_t *data, uint16_t msg_id, CAN_BMS_Cell_Voltages_t *msg) {
     uint8_t start_cell;
@@ -83,14 +46,10 @@ void decode_CAN_Voltage(const uint8_t *data, uint16_t msg_id, CAN_BMS_Cell_Volta
     msg->crc_check = (data[6] << 8) | data[7];
 }
 void decode_CAN_0x103(const uint8_t *data, CAN_BMS_0x103_t *msg) {
-    // Decode MOS tube status (Bytes 0-1)
-    msg->FET_Control_Status = (data[0] << 8) | data[1];
-    // Decode Production date (Bytes 2-3)
-    msg->Production_Date = (data[2] << 8) | data[3];
-    // Decode Software version (Bytes 4-5)
-    msg->Software_Version = (data[4] << 8) | data[5];
-    // Decode CRC_16 check value (Bytes 6-7)
-    msg->CRC_Check = (data[6] << 8) | data[7];
+    msg->FET_Control_Status = (data[0] << 8) | data[1];    // Decode MOS tube status (Bytes 0-1)
+    msg->Production_Date = (data[2] << 8) | data[3];    // Decode Production date (Bytes 2-3)
+    msg->Software_Version = (data[4] << 8) | data[5];    // Decode Software version (Bytes 4-5)
+    msg->CRC_Check = (data[6] << 8) | data[7];    // Decode CRC_16 check value (Bytes 6-7)
 }
 void decode_CAN_0x102(const uint8_t *data, CAN_BMS_0x102_t *msg) {
     // Decode equalization status for cells 1-16 (BYTE0 - BYTE1)
@@ -157,42 +116,13 @@ void decode_CAN_0x107(const uint8_t *data, CAN_BMS_0x107_t *msg) {
     msg->CELL3 = (float)((data[4] << 8) | data[5])/1000.0f;
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
-    tft.setCursor(20+400,180 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_1:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400, 180);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400, 180);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL1);
-
-tft.setCursor(20+400,210 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_2:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400, 210);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400, 210);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL2);
-
-tft.setCursor(20+400,240 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_3:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400, 240);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400, 240);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL3);
-    // uart_printf("CELL1=%.2f v CELL2=%.2f v CELL3=%.2f v \n\r",msg->CELL1,msg->CELL2,msg->CELL3);
+        sprintf(pres_str, "%.2f",msg->CELL1);
+    lv_label_set_text(ui_CELL1VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL2);
+    lv_label_set_text(ui_CELL2VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL3);
+    lv_label_set_text(ui_CELL3VAL, pres_str); 
+    
 }
 
 void decode_CAN_0x108(const uint8_t *data, CAN_BMS_0x108_t *msg) {
@@ -207,43 +137,14 @@ void decode_CAN_0x108(const uint8_t *data, CAN_BMS_0x108_t *msg) {
 
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
-    tft.setCursor(20+400,270 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_4:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400, 270);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400, 270);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL4);
-
-tft.setCursor(20+400,300 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_5:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400, 300);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400, 300);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL5);
-
-tft.setCursor(20+400,330 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_6:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400, 330);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400, 330);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL6);
-    // uart_printf("CELL4=%.2f v CELL5=%.2f v CELL6=%.2f v \n\r",msg->CELL4,msg->CELL5,msg->CELL6);
-}
+        msg->CRC_Check = (data[6] << 8) | data[7];
+        sprintf(pres_str, "%.2f",msg->CELL4);
+    lv_label_set_text(ui_CELL4VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL5);
+    lv_label_set_text(ui_CELL5VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL6);
+    lv_label_set_text(ui_CELL6VAL, pres_str); 
+ }
 void decode_CAN_0x109(const uint8_t *data, CAN_BMS_0x109_t *msg) {
     // Decode Cell6 voltage (Bytes 0-1)
     // The value is unsigned and in mV. "High byte first" means big-endian.
@@ -256,43 +157,13 @@ void decode_CAN_0x109(const uint8_t *data, CAN_BMS_0x109_t *msg) {
 
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
-    tft.setCursor(20+400,360 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_7:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400, 360);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400, 360);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL7);
-
-tft.setCursor(20+400,390 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_8:"); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400, 390);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400, 390);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL8);
-/*-----------------------------------------------------------------------------*/
-
-tft.setCursor(20+400+200,180 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_9: "); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400+200+10, 180);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400+200+10, 180);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL9);
-    // uart_printf("CELL7=%.2f v CELL8=%.2f v CELL9=%.2f v \n\r",msg->CELL7,msg->CELL8,msg->CELL9);
+        msg->CRC_Check = (data[6] << 8) | data[7];
+        sprintf(pres_str, "%.2f",msg->CELL7);
+    lv_label_set_text(ui_CELL7VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL8);
+    lv_label_set_text(ui_CELL8VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL9);
+    lv_label_set_text(ui_CELL9VAL, pres_str); 
 }
 void decode_CAN_0x10A(const uint8_t *data, CAN_BMS_0x10A_t *msg) {
     // Decode Cell10 voltage (Bytes 0-1)
@@ -307,43 +178,14 @@ void decode_CAN_0x10A(const uint8_t *data, CAN_BMS_0x10A_t *msg) {
 
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
-    tft.setCursor(20+400+200,210 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_10: "); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400+200+10, 210);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400+200+10, 210);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL10);
-
-tft.setCursor(20+400+200,240 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_11: "); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400+200+10, 240);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400+200+10, 240);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL11);
-
-tft.setCursor(20+400+200,270 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_12: "); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400+200+10, 270);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400+200+10, 270);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL12);
-    // uart_printf("CELL10=%.2f v CELL11=%.2f v CELL12=%.2f v \n\r",msg->CELL10,msg->CELL11,msg->CELL12);
-}
+        msg->CRC_Check = (data[6] << 8) | data[7];
+        sprintf(pres_str, "%.2f",msg->CELL10);
+    lv_label_set_text(ui_CELL10VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL11);
+    lv_label_set_text(ui_CELL11VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL12);
+    lv_label_set_text(ui_CELL12VAL, pres_str);
+ }
 void decode_CAN_0x10B(const uint8_t *data, CAN_BMS_0x10B_t *msg) {
     // Decode Cell13 voltage (Bytes 0-1)
     // The value is unsigned and in mV. "High byte first" means big-endian.
@@ -354,67 +196,28 @@ void decode_CAN_0x10B(const uint8_t *data, CAN_BMS_0x10B_t *msg) {
     msg->CELL15 = (float)((data[4] << 8) | data[5])/1000.0f;
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
-    tft.setCursor(20+400+200,300 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_13: "); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400+200+10, 300);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400+200+10, 300);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL13);
-
-tft.setCursor(20+400+200,330 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_14: "); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400+200+10, 330);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400+200+10, 330);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL14);
-
-tft.setCursor(20+400+200,360 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_15: "); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400+200+10, 360);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400+200+10, 360);
-
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL15);
-    // uart_printf("CELL13=%.2f v CELL14=%.2f v CELL15=%.2f v \n\r",msg->CELL13,msg->CELL14,msg->CELL15);
+        msg->CRC_Check = (data[6] << 8) | data[7];
+        sprintf(pres_str, "%.2f",msg->CELL13);
+    lv_label_set_text(ui_CELL13VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL14);
+    lv_label_set_text(ui_CELL14VAL, pres_str);
+        sprintf(pres_str, "%.2f",msg->CELL15);
+    lv_label_set_text(ui_CELL15VAL, pres_str);
 }
 void decode_CAN_0x10C(const uint8_t *data, CAN_BMS_0x10C_t *msg) {
     // Decode Cell16 voltage (Bytes 0-1)
     // The value is unsigned and in mV. "High byte first" means big-endian.
     msg->CELL16 =  (float)((data[0] << 8) | data[1])/1000.f;
-
     // Decode Cell17 voltage (Bytes 2-3)
     msg->CELL17 = (float)((data[2] << 8) | data[3])/1000.0f;
-
     // Decode Cell3 voltage (Bytes 4-5)
     msg->CELL18 = (float)((data[4] << 8) | data[5])/1000.0f;
-
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
-    tft.setCursor(20+400+200,390 );
-tft.setTextSize(2);
-tft.setTextColor(TFT_WHITE);
-tft.println("CELL_16: "); 
-tft.setTextColor(TFT_WHITE, TFT_RED);  // foreground, background
-tft.setCursor(110+400+200+10, 390);
-tft.print("    ");   // clear old value with spaces
-tft.setCursor(110+400+200+10, 390);
-tft.setTextSize(2);
-tft.printf("%.2f",msg->CELL16);
-    // uart_printf("CELL16=%.2f v \n\r",msg->CELL16);
+        msg->CRC_Check = (data[6] << 8) | data[7];
+       sprintf(pres_str, "%.2f",msg->CELL16);
+    lv_label_set_text(ui_CELL16VAL, pres_str);
+
 }
 void decode_CAN_0x10D(const uint8_t *data, CAN_BMS_0x10D_t *msg) {
     // Decode Cell19 voltage (Bytes 0-1)
@@ -423,10 +226,8 @@ void decode_CAN_0x10D(const uint8_t *data, CAN_BMS_0x10D_t *msg) {
 
     // Decode Cell20 voltage (Bytes 2-3)
     msg->CELL20 = (float)((data[2] << 8) | data[3])/1000.0f;
-
     // Decode Cell21 voltage (Bytes 4-5)
     msg->CELL21 = (float)((data[4] << 8) | data[5])/1000.0f;
-
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
 }
@@ -434,13 +235,10 @@ void decode_CAN_0x10E(const uint8_t *data, CAN_BMS_0x10E_t *msg) {
     // Decode Cell22 voltage (Bytes 0-1)
     // The value is unsigned and in mV. "High byte first" means big-endian.
     msg->CELL22 =  (float)((data[0] << 8) | data[1])/1000.f;
-
     // Decode Cell23 voltage (Bytes 2-3)
     msg->CELL23 = (float)((data[2] << 8) | data[3])/1000.0f;
-
     // Decode Cell24 voltage (Bytes 4-5)
     msg->CELL24 = (float)((data[4] << 8) | data[5])/1000.0f;
-
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
 }
@@ -448,13 +246,10 @@ void decode_CAN_0x10F(const uint8_t *data, CAN_BMS_0x10F_t *msg) {
     // Decode Cell25 voltage (Bytes 0-1)
     // The value is unsigned and in mV. "High byte first" means big-endian.
     msg->CELL25 =  (float)((data[0] << 8) | data[1])/1000.f;
-
     // Decode Cell26 voltage (Bytes 2-3)
     msg->CELL26 = (float)((data[2] << 8) | data[3])/1000.0f;
-
     // Decode Cell27 voltage (Bytes 4-5)
     msg->CELL27 = (float)((data[4] << 8) | data[5])/1000.0f;
-
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
 }
@@ -462,13 +257,10 @@ void decode_CAN_0x110(const uint8_t *data, CAN_BMS_0x110_t *msg) {
     // Decode Cell28 voltage (Bytes 0-1)
     // The value is unsigned and in mV. "High byte first" means big-endian.
     msg->CELL28 =  (float)((data[0] << 8) | data[1])/1000.f;
-
     // Decode Cell29 voltage (Bytes 2-3)
     msg->CELL29 = (float)((data[2] << 8) | data[3])/1000.0f;
-
     // Decode Cell30 voltage (Bytes 4-5)
     msg->CELL30 = (float)((data[4] << 8) | data[5])/1000.0f;
-
     // Decode CRC_16 check value (Bytes 6-7)
     msg->CRC_Check = (data[6] << 8) | data[7];
 }
