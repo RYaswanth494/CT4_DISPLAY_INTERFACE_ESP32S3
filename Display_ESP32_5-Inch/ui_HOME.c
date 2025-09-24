@@ -252,7 +252,7 @@ void ui_HOME_screen_init(void)
     lv_obj_set_x(ui_ChargeDischargeCurrent, -3);
     lv_obj_set_y(ui_ChargeDischargeCurrent, -190);
     lv_obj_set_align(ui_ChargeDischargeCurrent, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_ChargeDischargeCurrent, "CHARGE\nDISCHARGE\nCURRENT       :              A        ");
+    lv_label_set_text(ui_ChargeDischargeCurrent, "CHARGE &\nDISCHARGE\nCURRENT       :              A        ");
     lv_obj_set_style_text_color(ui_ChargeDischargeCurrent, lv_color_hex(0x10F71A), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_ChargeDischargeCurrent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_ChargeDischargeCurrent, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -306,7 +306,7 @@ void ui_HOME_screen_init(void)
     lv_label_set_text(ui_MCUTempVal, "0");
     lv_obj_set_style_text_font(ui_MCUTempVal, &lv_font_montserrat_28, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_RPM = lv_label_create(ui_HOME);
+   /* ui_RPM = lv_label_create(ui_HOME);
     lv_obj_set_width(ui_RPM, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_RPM, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_RPM, -68);
@@ -324,7 +324,7 @@ void ui_HOME_screen_init(void)
     lv_obj_set_y(ui_RPMVal, -75);
     lv_obj_set_align(ui_RPMVal, LV_ALIGN_CENTER);
     lv_label_set_text(ui_RPMVal, "0");
-    lv_obj_set_style_text_font(ui_RPMVal, &lv_font_montserrat_28, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_RPMVal, &lv_font_montserrat_28, LV_PART_MAIN | LV_STATE_DEFAULT);*/
 
     ui_MCUFault = lv_label_create(ui_HOME);
     lv_obj_set_width(ui_MCUFault, LV_SIZE_CONTENT);   /// 1

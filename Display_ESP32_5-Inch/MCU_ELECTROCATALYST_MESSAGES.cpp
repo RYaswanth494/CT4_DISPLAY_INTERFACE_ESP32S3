@@ -70,13 +70,16 @@ void decode_MCU_Stat_Two(const uint8_t *data, MCU_Stat_Two_t *out) {
 
     sprintf(pres_str1, "%.2lf",out->MCU_Odometer_Val);
     lv_label_set_text(ui_OdoMeterVal, pres_str1); 
-		if(out->MCU_Motor_RPM<10){
-    // sprintf(pres_str1, "%.2f",out->MCU_Motor_RPM);
-    lv_label_set_text(ui_RPMVal,"0"); 
-		}else{
-    sprintf(pres_str1, "%ld",(uint64_t)out->MCU_Motor_RPM);
-    lv_label_set_text(ui_RPMVal, pres_str1); 
-		}
+		// if(out->MCU_Motor_RPM<0){
+		// 	out->MCU_Motor_RPM=-out->MCU_Motor_RPM ;
+		// }
+		// if(out->MCU_Motor_RPM<20){
+    // // sprintf(pres_str1, "%.2f",out->MCU_Motor_RPM);
+    // lv_label_set_text(ui_RPMVal,"0"); 
+		// }else{
+    // sprintf(pres_str1, "%ld",(uint64_t)out->MCU_Motor_RPM);
+    // lv_label_set_text(ui_RPMVal, pres_str1); 
+		// }
 		
 }
 void decode_MCU_Fault_Code(const uint8_t *data, MCU_Fault_Code_t *out) {
@@ -144,6 +147,7 @@ if (!out) return;
 	out->MCU_FAULT_two_sig12 = (int)extract_motorola_u64(data, 5, 1);
 	out->MCU_FAULT_two_sig13 = (int)extract_motorola_u64(data, 6, 1);
 	out->MCU_FAULT_two_sig14 = (int)extract_motorola_u64(data, 7, 1);
+
 	// uart_print_str("\n VCU_BFNRFault_St_B: ");
 	// uart_printf("%d ",out->MCU_FAULT_two_sig0);
 	// uart_print_str("\n VCU_DCDCEnableFault_St_B: ");
